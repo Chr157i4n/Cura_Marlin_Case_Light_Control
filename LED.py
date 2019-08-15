@@ -30,7 +30,7 @@ class LED(Script):
             {
                 "Layer":
                 {
-                    "label": "Layer",
+                    "label": "Layer No.",
                     "description": "On which Layer this script should change the LEDs",
                     "type": "int",
                     "default_value": 0,
@@ -45,7 +45,7 @@ class LED(Script):
                 },
                 "Brightness":
                 {
-                    "label": "Brightness",
+                    "label": "Brightness in %",
                     "description": "Brightness of the LEDs. 0 to turn off the LEDs",
                     "type": "float",
                     "default_value": 100,
@@ -62,8 +62,10 @@ class LED(Script):
         LED_Layer = self.getSettingValueByKey("Layer")
         LED_LastLayer = self.getSettingValueByKey("LastLayer")
         LED_Brightness = self.getSettingValueByKey("Brightness")
+        LED_Brightness = round(LED_Brightness/100*255)     #convert the brightness from percent to 8bit
         last_Layer=-1
-        for layer in data:
+        
+        for layer in data:                  #count Layers
             layer_index = data.index(layer)
             lines = layer.split("\n")
             for line in lines:
@@ -78,10 +80,13 @@ class LED(Script):
                 if line.startswith(";LAYER:"):
                     layer_indexI=layer_indexI+1
                     line_index = lines.index(line)
-                    if (layer_indexI==LED_Layer and LED_LastLayer==False):
-                        lines.insert(line_index + 1, "M42 P6 S"+str(LED_Brightness))                   
-                    if (layer_indexI==last_Layer and LED_LastLayer==True):
-                        lines.insert(line_index + 1, "M42 P6 S"+str(LED_Brightness))                          
+                    
+                    if (layer_indexI==LED_Layer and LED_LastLayer==False):              #Layernumber specified
+                        lines.insert(line_index + 1, "M355 S1 P"+str(LED_Brightness))
+                    
+                    if (layer_indexI==last_Layer and LED_LastLayer==True):              #Lastlayer
+                        lines.insert(line_index + 1, "M355 S1 P"+str(LED_Brightness))
+                    
             result = "\n".join(lines)
             data[layer_index] = result
         return data
